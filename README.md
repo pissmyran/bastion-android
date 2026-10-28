@@ -1,38 +1,35 @@
-# Bastion
+# Bastion för Android
 
-Bastion är ett multiplattformsprojekt med en delad Swift-baserad SSH-kärna och separata applikationsytor för Apple-plattformar, Android, Linux och Windows.
+**Dokumentation:** [pissmyran.github.io/bastion_android](https://pissmyran.github.io/bastion_android/)
 
-## Struktur
+Bastion är en SSH-klient. Det här repot innehåller versionen för Android, byggd med Kotlin, Gradle och Apache MINA SSHD. Övriga plattformar har egna repon: [Bastion för Apple](https://github.com/pissmyran/bastion_apple), [Bastion för Linux](https://github.com/pissmyran/bastion_linux), [Bastion för Windows](https://github.com/pissmyran/bastion_windows).
 
-| Område | Plats | Teknik |
-| --- | --- | --- |
-| delad SSH-kärna + CLI | `Sources/`, `Tests/`, `Package.swift` | Swift / SwiftNIO |
-| iOS, macOS, tvOS | `App/` | Swift / XcodeGen |
-| Android | `Android/` | Kotlin / Gradle |
-| Linux | `LinuxApp/` | Rust |
-| Windows | `WindowsApp/` | .NET |
+## Innehåll
 
-## Snabb verifiering
+| Plats | Innehåll |
+| --- | --- |
+| `Android/app/` | Appen: anslutning, SSH-session och systeminformation |
+| `Android/` | Gradle-projektet med egen wrapper |
+| `gradlew`, `gradle/` | Wrapper i roten som pekar på `Android/`, så att verktyg som körs från roten hittar projektet |
 
-Swift-kärnan:
+## Kom igång
+
+Testa:
 
 ```bash
-swift test
+./gradlew test
 ```
 
-Övriga plattformar har egna bygg- och verifieringsflöden; se **[dokumentationsöversikten](docs/index.md)**.
+Bygg en debug-APK:
 
-## Dokumentation
+```bash
+./gradlew assembleDebug
+```
 
-Den publicerade dokumentationssajten är `https://docs.bastion.denied.se`. Källan är alltid repositoryts versionsstyrda `docs/`, och stable dokumentation byggs från samma Git-tagg som Bastions GitHub Release.
+Kommandona körs från repots rot; `gradlew` i roten skickar vidare till `Android/`. Android SDK måste finnas och `ANDROID_HOME` vara satt.
 
-- [Dokumentationsöversikt](docs/index.md)
-- [Projektkontext](docs/project-context.md) — plattformar och bygginvarianter
-- [Arkitektur](docs/architecture.md) — komponentgränser och delad kärna
-- [Drift och verifiering](docs/operations.md) — plattformsspecifika kontroller
-- [Release- och versionsstandard](docs/release-standard.md) — SemVer, PR-titlar och releasegränser
-- [SECURITY.md](SECURITY.md) — säkerhetsrapportering
+## Mer
 
-## Viktig Apple-invariant
-
-`App/Package.swift` är manifestet som dependency automation kan läsa. `App/generate-project.sh` läser dependencyversioner därifrån och matar dem vidare till XcodeGen. Generera därför inte Bastions Apple-projekt med en direkt `xcodegen generate --spec App/project.yml` om det kringgår wrappern.
+- [Dokumentationen](https://pissmyran.github.io/bastion_android/) – kom igång, arkitektur, drift, synkformat och release
+- [SECURITY.md](SECURITY.md) – rapportera en sårbarhet
+- [CONTRIBUTING.md](CONTRIBUTING.md) – bidra

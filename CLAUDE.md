@@ -44,7 +44,7 @@ Run the commands from the repo root; the root `gradlew` forwards to `Android/`. 
 
 ## Rules for this repo
 
-- **Language:** everything in this repo is English: code, comments, docstrings, documentation, PR titles and bodies, commit messages, review replies and labels. Only the core rules block above stays in Swedish. Older code still has Swedish comments and UI text; translate them when you touch the file.
+- **Language:** everything in this repo is English: code, comments, docstrings, documentation, PR titles and bodies, commit messages, review replies and labels. Only the core rules block above stays in Swedish. Older code still has Swedish comments and UI text; write every new or changed comment and string in English.
 - **The Android SDK is required** for `./gradlew test`. If it is missing in the session, say in the PR what could not be tested.
 - **Build scripts and runtime stay apart** in Gradle; see `docs/operations.md`.
 - **The documentation** is a Zensical site: `docs/`, `zensical.toml` and the home page template in `overrides/home.html`. Build it locally with `pip install --upgrade zensical` and `zensical build --strict`. New pages go into `nav` in `zensical.toml`.

@@ -4,42 +4,41 @@ inheritance: true
 
 reviews:
   path_instructions:
-    # SSH-tillit och autentisering.
+    # SSH trust and authentication.
     - path: "Android/app/src/main/kotlin/se/denied/bastion/ssh/BastionSshSession.kt"
       instructions: |
-        När värdnyckelkontroll eller autentisering ändras, kontrollera
-        att TOFU fortfarande skiljer första anslutningen från en ändrad
-        nyckel för samma värd och port. En ändrad nyckel ska avvisas.
-        Kontrollera även separata kommandon, SFTP och varje ProxyJump-led
-        där dessa anslutningsvägar finns.
-        På Android ska läs-, tolknings- och skrivfel i known_hosts
-        avvisa anslutningen, inte aktivera AcceptAllServerKeyVerifier.
-        Vid ändrad agentvidarebefordran, kontrollera att användarens
-        uttryckliga forwardAgent-val fortfarande styr åtkomsten.
+        When host key verification or authentication changes, check
+        that TOFU still distinguishes the first connection from a changed
+        key for the same host and port. A changed key must be rejected.
+        Also check separate commands, SFTP and every ProxyJump hop
+        where those connection paths exist.
+        Read, parse and write errors in known_hosts must reject
+        the connection, never enable AcceptAllServerKeyVerifier.
+        When agent forwarding changes, check that the user's
+        explicit forwardAgent choice still controls access.
 
-    # Samtidighet och anslutningars livstid.
+    # Concurrency and connection lifetime.
     - path: "Android/app/src/main/kotlin/se/denied/bastion/ssh/BastionSshSession.kt"
       instructions: |
-        När anslutning, keepalive eller stängning ändras, följ samtidiga
-        connect-, kanalöppnings- och close-förlopp samt autentiseringsfel.
-        Kontrollera att promises och continuations fullbordas högst
-        en gång och att fel eller stängning inte lämnar anrop väntande.
-        Kontrollera att sent färdiga anslutningar och kanaler stängs
-        om anroparen redan har avbrutit.
-        En gammal keepalive-monitor får inte stänga en ny session.
-        Använd TerminalTeardownRaceTests, AuthFailureTerminationTests
-        och respektive plattforms sessionstester som regressionsunderlag.
+        When connect, keepalive or close changes, trace concurrent
+        connect, channel-open and close sequences and auth failures.
+        Check that promises and continuations complete at most
+        once and that errors or close never leave calls pending.
+        Check that late connections and channels are closed
+        if the caller has already cancelled.
+        An old keepalive monitor must not close a new session.
+        Use the session tests as regression evidence.
 
-    # Publicering av versioner.
+    # Publishing releases.
     - path: ".github/{workflows/release.yml,scripts/semantic_release.py,scripts/wait_for_checks.py,release-baseline,release-required-checks}"
       instructions: |
-        När releasebeslut eller kontrollgrind ändras, kontrollera
-        att tagg, kontroller och publicering avser samma target_sha.
-        Saknade, väntande eller misslyckade obligatoriska kontroller
-        får inte räknas som godkända. Kontrollera paginering och
-        senaste resultat per kontroll och utfärdare vid omkörningar.
-        Vid samtidiga releaser eller omförsök, kontrollera att en
-        befintlig taggs mål verifieras och att samma release inte
-        publiceras på nytt med annat innehåll.
-        Kontrollera stabila versioner, rc och promote mot parsern
-        och befintliga releaseankare utan att kringgå kontrollgrinden.
+        When release decisions or the check gate change, check
+        that the tag, the checks and the publication refer to the same target_sha.
+        Missing, pending or failed required checks must never
+        count as passed. Check pagination and the latest
+        result per check and issuer on reruns.
+        On concurrent releases or retries, check that an
+        existing tag's target is verified and that the same release is not
+        published again with different content.
+        Check stable versions, rc and promote against the parser
+        and existing release anchors without bypassing the check gate.

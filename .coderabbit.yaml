@@ -2,9 +2,25 @@
 
 inheritance: true
 
+# Inherit shared rules from pissmyran/coderabbit on main. Path instructions
+# merge by path; keep local paths unique and distinct from the shared paths.
 reviews:
   path_instructions:
-    # SSH trust and authentication.
+    # Android build tools and application runtime.
+    - path: "Android/**/*.gradle.kts"
+      instructions: |
+        Follow AGENTS.md, docs/architecture.md and docs/operations.md.
+        Keep buildscript classpath dependencies separate from app runtime
+        dependencies. Apply dependency fixes to the configuration that owns
+        the dependency; do not move build tools into implementation or suppress
+        dependency-graph coverage to hide vulnerable dependencies.
+        Check that Gradle, AGP and dependency changes support the configured
+        Android SDK levels and APIs, and keep Java and Kotlin bytecode targets
+        consistent. Preserve the root testClasses mapping to :app:assembleDebug
+        used by CodeQL default-setup autobuild so it compiles application sources
+        without requiring Gradle to run on exactly the bytecode-target JDK.
+
+    # SSH trust, authentication, concurrency and connection lifetime.
     - path: "Android/app/src/main/kotlin/se/denied/bastion/ssh/BastionSshSession.kt"
       instructions: |
         When host key verification or authentication changes, check
@@ -17,9 +33,6 @@ reviews:
         When agent forwarding changes, check that the user's
         explicit forwardAgent choice still controls access.
 
-    # Concurrency and connection lifetime.
-    - path: "Android/app/src/main/kotlin/se/denied/bastion/ssh/BastionSshSession.kt"
-      instructions: |
         When connect, keepalive or close changes, trace concurrent
         connect, channel-open and close sequences and auth failures.
         Check that promises and continuations complete at most
@@ -28,6 +41,41 @@ reviews:
         if the caller has already cancelled.
         An old keepalive monitor must not close a new session.
         Use the session tests as regression evidence.
+        For changed trust, authentication, exec, shell or heartbeat behavior,
+        require regression coverage using the real in-process Apache MINA SSHD
+        server in Android/app/src/test/kotlin/se/denied/bastion/ssh/BastionSshSessionTest.kt.
+        Cover the changed failure and cleanup paths as well as success.
+
+    # Activity workers and terminal resources.
+    - path: "Android/app/src/main/kotlin/se/denied/bastion/MainActivity.kt"
+      instructions: |
+        Keep blocking SSH connect, exec, shell I/O and resource shutdown off
+        the main thread, and marshal view updates onto the UI thread.
+        Trace worker completion after onDestroy, disconnect and reconnect:
+        late sessions and shells must be closed and stale callbacks must not
+        replace or close the current terminal session or update destroyed views.
+        Check that shell readers and sessions are released on failure and
+        activity destruction, including when cancellation is introduced.
+        Preserve bounded terminal buffering and coalesced UI output updates.
+
+    # Regression tests for the Android SSH implementation.
+    - path: "Android/app/src/test/kotlin/**/*.kt"
+      instructions: |
+        Keep SSH integration tests self-contained with a real in-process
+        Apache MINA SSHD server, without depending on a system sshd or external
+        host. Check bounded waits and cleanup of clients, servers, channels
+        and worker threads on failures. Extend the existing trust, authentication,
+        exec, interactive-shell and heartbeat tests for changed behavior.
+        Use ConnectionRequestTest.kt and SystemProbeTest.kt for input-validation
+        and snapshot-parsing regressions respectively, including failure paths.
+
+    # Sync is a future feature, not an existing Android implementation.
+    - path: "Android/app/src/main/kotlin/**/*.kt"
+      instructions: |
+        If host-list persistence or sync is introduced or changed, follow
+        docs/sync-format.md. Android has no sync implementation yet; future
+        sync must use the Apple-owned format, a local copy of the Apple
+        Tests/fixtures/ fixtures and compatibility tests that read those fixtures.
 
     # Publishing releases.
     - path: ".github/{workflows/release.yml,scripts/semantic_release.py,scripts/wait_for_checks.py,release-baseline,release-required-checks}"
